@@ -1,0 +1,51 @@
+body {
+	background-color: #2a2a2b;
+	color: white;
+/*	font-family: 'Unica One', sans-serif;*/
+}
+
+button {
+	background-color: #2a2a2b;
+	color: white;
+}
+
+input {
+	background-color: black;
+	color: white;
+}
+
+#stock-chart {
+	margin-bottom: 10px;
+	padding-left: 20px;
+	padding-right: 20px;
+}
+
+#stock-list {
+	background-color: #2a2a2b;
+}
+
+#stock-panel {
+	/*TODO: Get color from chart?*/
+	background-color: #3e3e40;
+	height: 100px;
+	position: relative;
+/*	border-radius: 10px;*/
+	margin: 5px 5px 5px 5px;
+/*	margin: 10px 25px 10px 25px;*/
+}
+
+#remove {
+	top: 5px;
+	right: 5px;
+	position: absolute;
+	color: red;
+	display: none;
+}
+
+#remove:hover {
+	cursor: pointer;
+}
+
+#stock-panel:hover span{
+	display: inline;
+}
