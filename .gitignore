@@ -1,3 +1,5 @@
-.env
-node_modules
 .git
+.env
+.eslintrc
+dist
+node_modules
