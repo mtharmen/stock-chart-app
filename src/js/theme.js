@@ -56,6 +56,9 @@ module.exports = function() {
       yAxis: {
          gridLineColor: '#707073',
          labels: {
+            formatter: function () {
+               return (this.value > 0 ? ' + ' : '') + this.value + '%';
+            },
             style: {
                color: '#E0E0E3'
             }
@@ -71,6 +74,7 @@ module.exports = function() {
          }
       },
       tooltip: {
+         pointFormat: '<span style="color:{series.color}">{series.name}</span>: <b>{point.y}</b> ({point.change}%)<br/>',
          backgroundColor: 'rgba(0, 0, 0, 0.85)',
          style: {
             color: '#E0E0E3',
@@ -81,6 +85,8 @@ module.exports = function() {
       },
       plotOptions: {
          series: {
+            compare: 'percent',
+            showInNavigator: true,
             dataLabels: {
                color: '#B0B0B3'
             },
@@ -140,7 +146,7 @@ module.exports = function() {
 
       // scroll charts
       rangeSelector: {
-         selected: 0,
+         selected: 5,
          buttonTheme: {
             fill: '#505053',
             stroke: '#000000',

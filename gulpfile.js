@@ -8,11 +8,11 @@ var watchify    = require('watchify');
 var browserify  = require('browserify');
 var browserSync = require('browser-sync').create();
 
-
 watchify.args.debug = true;
 
-var html = './views/*.html';
-var scripts   = './src/js/*.js';
+var html    = './views/*.html';
+var scripts = './src/js/*.js';
+var css     = './src/css/*.css';
 
 var langs = ["es2015", "react"];
 var wsApp = true;
@@ -42,9 +42,21 @@ function bundle() {
 }
 
 // Optional command to manually bundle
-gulp.task('bundle', function () {
+gulp.task('bundle', ['css', 'font'], function () {
   	return bundle();
 });
+
+////// CSS STUFF
+gulp.task('css', function() {
+	return gulp.src('src/css/*.css')
+		.pipe(gulp.dest('dist/css'))
+})
+
+///// FONTS
+gulp.task('font', function() {
+	return gulp.src('src/fonts/*.*')
+		.pipe(gulp.dest('dist/fonts'))
+})
 
 
 //////// JSX -> JS Transpile Stuff
@@ -103,6 +115,8 @@ gulp.task('browser-sync', ['nodemon'], function() {
 	});
 });
 
+gulp.task('build', ['bundle'])
+
 gulp.task('default', ['bundle', 'browser-sync'], function() {
 
 	gulp.watch(html, function() {
@@ -110,4 +124,8 @@ gulp.task('default', ['bundle', 'browser-sync'], function() {
 	})
 
 	gulp.watch(scripts, ['bundle'])
+
+	gulp.watch(css, ['css'], function() {
+	 	browserSync.reload();
+	})
 })

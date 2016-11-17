@@ -8,9 +8,14 @@
     "express": "^4.14.0",
     "highcharts": "^5.0.2",
     "mongoose": "^4.6.6",
-    "react": "^15.3.2",
-    "react-dom": "^15.3.2",
+    "node-schedule": "^1.2.0",
+    "react": "^15.4.0",
+    "react-dom": "^15.4.0",
+    "react-flip-move": "^2.6.4",
+    "react-select": "^1.0.0-rc.2",
+    "react-virtualized": "^8.5.2",
     "request": "^2.78.0",
+    "request-promise-native": "^1.0.3",
     "socket.io": "^1.5.1",
     "socket.io-client": "^1.5.1"
   },
@@ -28,8 +33,17 @@
     "watchify": "^3.7.0"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
   },
-  "author": "",
-  "license": "ISC"
+  "author": "Muhinthan Tharmendran",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mtharmen/stock-chart-app.git"
+  },
+  "bugs": {
+    "url": "https://github.com/mtharmen/stock-chart-app/issues"
+  },
+  "homepage": "https://github.com/mtharmen/stock-chart-app#readme"
 }
