@@ -1,11 +1,11 @@
-var Highcharts = require('highcharts/highstock')
+var Highcharts = require('highcharts/highstock');
 
 module.exports = function() {
-   Highcharts.createElement('link', {
-      href: 'https://fonts.googleapis.com/css?family=Unica+One',
-      rel: 'stylesheet',
-      type: 'text/css'
-   }, null, document.getElementsByTagName('head')[0]);
+    Highcharts.createElement('link', {
+        href: 'https://fonts.googleapis.com/css?family=Unica+One',
+        rel: 'stylesheet',
+        type: 'text/css'
+    }, null, document.getElementsByTagName('head')[0]);
 
    Highcharts.theme = {
       colors: ['#2b908f', '#90ee7e', '#f45b5b', '#7798BF', '#aaeeee', '#ff0066', '#eeaaee',
@@ -218,4 +218,4 @@ module.exports = function() {
 
    // Apply the theme
    Highcharts.setOptions(Highcharts.theme);
-}
+};
