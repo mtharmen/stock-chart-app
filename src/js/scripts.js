@@ -133,6 +133,7 @@ var Footer = React.createClass ({
 						<a href="https://www.freecodecamp.com/challenges/chart-the-stock-market" target="_blank">FCC Stock Chart App</a> | 
 						<a href="https://github.com/mtharmen/stock-chart-app" target="_blank"> GitHub Repo <i className="fa fa-github" aria-hidden="true"></i></a> | 
 						<a href="http://fontawesome.io/" target="_blank"> Icons from Font Awesome <i className="fa fa-font-awesome" aria-hidden="true"></i></a> | 
+						<a href="https://www.quandl.com/" target="_blank"> Data from Quandl </a> | 
 						<a href="http://www.highcharts.com/" target="_blank"> Chart from HighCharts</a>
 					</small></p>
 				</div>

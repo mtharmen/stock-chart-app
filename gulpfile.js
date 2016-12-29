@@ -115,8 +115,6 @@ gulp.task('browser-sync', ['nodemon'], function() {
 	});
 });
 
-gulp.task('build', ['bundle'])
-
 gulp.task('default', ['bundle', 'browser-sync'], function() {
 
 	gulp.watch(html, function() {

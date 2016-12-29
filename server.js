@@ -25,11 +25,13 @@ var stockSchema = new mongoose.Schema({
 
 var Stock = mongoose.model('Stock', stockSchema);
 
-mongoose.connect('mongodb://' + ip + '/stockAppDB');
+var mongodbUrl = process.env.MONGODB_URL || 'mongodb://' + ip;
+	
+mongoose.connect(mongodbUrl + '/mtharmen-stock-chart-app');
 var db = mongoose.connection;
 db.on('error', console.error.bind(console, 'connection error:'));
 db.once('open', function() {
- 	console.log('Connected to stockAppDB');
+ 	console.log('Connected to mtharmen-stock-chart-app');
 });
 
 var convertDate = function(date) {
@@ -86,8 +88,8 @@ var getData = function(code) {
 	    method: 'GET',
 	    qs: {
 	        column_index : '4',
-	        api_key      : 'x4zV3Y57xvyWpQDm9wLe',
-	        start_date   : '2014-01-01' // TODO: get rid of all stocks with end date < 2014-01-01
+	        api_key      : process.env.QUANDL_API_KEY,
+	        start_date   : '2014-01-01'
 	    },
 	    json: true
 	};
@@ -123,7 +125,6 @@ var initialize = function(socket) {
 					console.log(timestamp() + 'Initializing');
 					socket.emit('initialize', { stocks: stocks, stockData: stockData });
 				} else {
-					// TODO: Make it impossible to remove the last stock
 					getData('GOOG')
 						.then(function(res) {
 							var data = res.dataset.data.map(function(point) { return [ Date.parse(point[0]), point[1] ]; }).reverse();
