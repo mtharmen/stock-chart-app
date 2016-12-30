@@ -1,4 +1,4 @@
-# Free Code Camp Challenge: [Build a Stock Chart App](https://www.freecodecamp.com/challenges/chart-the-stock-market)
+# Free Code Camp Challenge: [Build a Stock Chart App](https://www.freecodecamp.com/challenges/build-a-pinterest-clone)
 
 ##User stories:
 1. I can view a graph displaying the recent trend lines for each added stock.
