@@ -52,8 +52,8 @@ app.get('/', function(req, res) {
 	res.sendFile(path.join(__dirname, '/views/index.html'));
 });
 
-server.listen(port, function() {
-	console.log('Listening on port', port);
+server.listen(8080, function() {
+	console.log('Listening on port', 8080);
 });
 
 // SOCKET.IO STUFF
