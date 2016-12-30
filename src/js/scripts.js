@@ -6,8 +6,9 @@ import io from 'socket.io-client';
 import Select from 'react-select';
 
 require('./theme.js')();
-var socket = io.connect('127.0.0.1:8080'); //hide this
+var ioUri = window.location.protocol + '//' + window.location.hostname + ':8080';
 
+var socket = io.connect(ioUri);
 
 var StockList = React.createClass({
 	addStock(stock) {
