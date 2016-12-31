@@ -3,8 +3,8 @@ var express  = require('express');
 var app      = express();
 var path     = require('path');
 var http     = require('http');
-// var server   = http.Server(app);
-var io       = require('socket.io')(app);
+var server   = http.createServer(app);
+var io       = require('socket.io')(server);
 var request  = require('request-promise-native');
 var mongoose = require('mongoose');
 //var schedule = require('node-schedule');
@@ -52,7 +52,7 @@ app.get('/', function(req, res) {
 	res.sendFile(path.join(__dirname, '/views/index.html'));
 });
 
-app.listen(port, function() {
+server.listen(port, function() {
 	console.log('Listening on port', port);
 });
 
