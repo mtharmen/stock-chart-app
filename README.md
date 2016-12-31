@@ -7,4 +7,5 @@
 4. I can see changes in real-time when any other user adds or removes a stock. For this you will need to use Web Sockets.
 
 ##Possible Updates:
-1. Update search bar
+1. Update search bar so that it doesn't require the entire list of companies to be preloaded
+2. Update to ES6 syntax and general clean up
