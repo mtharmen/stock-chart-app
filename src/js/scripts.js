@@ -78,7 +78,11 @@ var ChartStock = React.createClass({
 		return {
 			container: 'stock-chart',
 			options: {
-				series: series
+				series: series,
+				// After 5.0.6, Highcharts doesn't default the height to 400px
+				chart: {
+					height: 400
+				}
 			}
 		};
 	},
@@ -117,12 +121,12 @@ var ChartStock = React.createClass({
 		socket.on('addStock', this.addStock);
 		socket.on('removeStock', this.removeStock);
 	},
-	//Destroy chart before unmount.
+	// Destroy chart before unmount.
 	componentWillUnmount() {
 		this.chart.destroy();
 	},
-	render: function() {
-		return <div id="stock-chart" className="col-xs-12 col-md-8 col-md-offset-0"> </div>;
+	render() {
+		return <div id="stock-chart" className="col-xs-12 col-md-8 col-md-offset-0"></div>;
 	}
 });
 
@@ -234,7 +238,7 @@ var StockApp = React.createClass({
 	}
 });
 
-socket.on('initialize', function(data){
+socket.on('initialize', function(data) {
 	ReactDOM.render(<StockApp initialData={data}/>, document.getElementById('root'));
 });
 
