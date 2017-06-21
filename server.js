@@ -26,6 +26,8 @@ var stockSchema = new mongoose.Schema({
 var Stock = mongoose.model('Stock', stockSchema);
 
 var mongodbUrl = process.env.MONGODB_URL || 'mongodb://' + ip;
+//MONGOD_URL=mongodb://mtharAdmin:brdiodglneoym19881033g@ds149268.mlab.com:49268
+
 	
 mongoose.connect(mongodbUrl + '/mtharmen-stock-chart-app');
 var db = mongoose.connection;
@@ -48,16 +50,16 @@ var convertDate = function(date) {
 // Expess Set Up
 app.use(express.static(path.join(__dirname, 'dist')));
 
-app.get('/', function(req, res) {
+app.get('/', (req, res) => {
 	res.sendFile(path.join(__dirname, '/views/index.html'));
 });
 
-server.listen(port, function() {
+server.listen(port, () => {
 	console.log('Listening on port', port);
 });
 
 // SOCKET.IO STUFF
-io.on('connection', function(socket){
+io.on('connection', socket => {
   
 	console.log(timestamp() + 'connected');
 	//console.log(socket.request.headers)
@@ -65,15 +67,15 @@ io.on('connection', function(socket){
 	// Intializing new connection
 	initialize(socket);
 
-	socket.on('clientAddStock', function(data) {
+	socket.on('clientAddStock', data => {
 		addStock(data, socket);
 	});
 
-	socket.on('clientRemoveStock', function(data) {
+	socket.on('clientRemoveStock', data => {
 		removeStock(data, socket);
 	});
 
-	socket.on('disconnect', function() {
+	socket.on('disconnect', () => {
 		console.log(timestamp() + 'disconnected');
 	});
 });
@@ -98,26 +100,26 @@ var getData = function(code) {
 
 var getDefault = function() {
 	getData('GOOG')
-		.then(function(res) {
-			var data = res.dataset.data.map(function(point) { return [ Date.parse(point[0]), point[1] ]; });
+		.then(res => {
+			var data = res.dataset.data.map(point => { return [ Date.parse(point[0]), point[1] ]; });
 			return data;
 		});
 };
 
 var initialize = function(socket) {
-	Stock.find({}, 'code company -_id').exec().then(function(docs) {
-		var promises = docs.map(function(doc) {
+	Stock.find({}, 'code company -_id').exec().then(docs => {
+		var promises = docs.map(doc => {
 			return getData(doc.code);
 		});
 		Promise.all(promises)
-			.then(function(data) {
+			.then(data => {
 				var stocks = [];
 				var stockData = [];
 				if (data.length) {
-					data.forEach(function(res) {
+					data.forEach(res => {
 						var id = Math.floor(Math.random()*10000); // TODO: Make this client side
 						// Converting from YYYY-MM-DD to Unix Time
-						var data = res.dataset.data.map(function(point) { return [ Date.parse(point[0]), point[1] ]; }).reverse();
+						var data = res.dataset.data.map(point => { return [ Date.parse(point[0]), point[1] ]; }).reverse();
 						// Separating code+company from data since only the chart needs the data
 						stocks.push({ id: id,  code: res.dataset.dataset_code, company: res.dataset.name.split(' (')[0] });
 						stockData.push(data);
@@ -126,27 +128,27 @@ var initialize = function(socket) {
 					socket.emit('initialize', { stocks: stocks, stockData: stockData });
 				} else {
 					getData('GOOG')
-						.then(function(res) {
-							var data = res.dataset.data.map(function(point) { return [ Date.parse(point[0]), point[1] ]; }).reverse();
+						.then(res => {
+							var data = res.dataset.data.map(point => { return [ Date.parse(point[0]), point[1] ]; }).reverse();
 							stockData.push(data);
 							stocks.push({ id: Math.floor(Math.random()*10000), code: 'GOOG', company: 'Alphabet Inc.'});
 							console.log(timestamp() + 'Initializing');
 							socket.emit('initialize', { stocks: stocks, stockData: stockData });
 						})
-						.catch(function(res) {
+						.catch(res => {
 							var message = 'Error getting data from Quandl API';
 							console.error(timestamp() + message);
 							socket.emit('cantInitialize', { msg: message });	
 						});
 				}			
 			})
-			.catch(function(res) {
+			.catch(res => {
 				var message = 'Error getting data from Quandl API';
 				console.error(timestamp() + message);
 				socket.emit('cantInitialize', { msg: message });
 			});
 	})
-	.catch(function(err) {
+	.catch(err => {
 		console.error(timestamp() + err);
 		socket.emit('cantInitialize', { msg: err });
 	});
@@ -154,20 +156,20 @@ var initialize = function(socket) {
 
 var addStock = function(stock, socket) {
 	getData(stock.code)
-		.then(function(res) {
+		.then(res => {
 			var newStock = new Stock(stock);
 			newStock.save()
-				.then(function(doc) {
+				.then(doc => {
 					var data = res.dataset.data.map(function(point) { return [ Date.parse(point[0]), point[1] ]; }).reverse();
 					console.log(timestamp() + 'Added ' + stock.code );
 					io.emit('addStock', { id: Math.floor(Math.random()*10000), code: stock.code, company: stock.company, stockData: data });
 				})
-				.catch(function(err) {
+				.catch(err => {
 					console.error(timestamp() + err);
 					socket.emit('errorMsg', { msg: err });
 				});
 		})
-		.catch(function(res) {
+		.catch(res => {
 			console.error(timestamp() + 'Error getting data from Quandl API');
 			socket.emit('errorMsg', { msg: err });
 		});
@@ -175,11 +177,11 @@ var addStock = function(stock, socket) {
 
 var removeStock = function(stock, socket) {
 	Stock.remove({ code: stock.code })
-		.then(function() {
+		.then(() => {
 			console.log(timestamp() + 'Removed ' + stock.code);
 			io.emit('removeStock', { code: stock.code });
 		})
-		.catch(function(err){
+		.catch(err => {
 			console.error(timestamp() + err);
 			socket.emit('errorMsg', { msg: err });
 		});
