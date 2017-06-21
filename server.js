@@ -26,8 +26,6 @@ var stockSchema = new mongoose.Schema({
 var Stock = mongoose.model('Stock', stockSchema);
 
 var mongodbUrl = process.env.MONGODB_URL || 'mongodb://' + ip;
-//MONGOD_URL=mongodb://mtharAdmin:brdiodglneoym19881033g@ds149268.mlab.com:49268
-
 	
 mongoose.connect(mongodbUrl + '/mtharmen-stock-chart-app');
 var db = mongoose.connection;
