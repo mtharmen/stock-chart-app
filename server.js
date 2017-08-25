@@ -19,7 +19,7 @@ const Stock = mongoose.model('Stock', stockSchema)
 const MONGODB_URL = process.env.mongoDB_URL || 'mongodb://localhost:27017'
 
 mongoose.Promise = global.Promise
-const dbName = 'testDB'
+const dbName = 'stockDB'
 mongoose.connect(MONGODB_URL + `/${dbName}`, { useMongoClient: true })
 const db = mongoose.connection
 db.on('error', err => { console.error(err) })
