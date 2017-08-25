@@ -19,7 +19,6 @@ import { HighstockChartService } from './../../core/highstock-chart.service'
   styles: [`
     .loading {
       opacity: 0;
-      height: 0px;
     }
   `]
 })

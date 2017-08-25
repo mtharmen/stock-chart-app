@@ -67,23 +67,20 @@ function initialize (socket) {
   Stock.find({}).exec()
     .then(stocks => {
       if (!stocks.length) {
-        console.log('no stocks found, intializing with GOOG')
         const newStock = new Stock({ code: 'GOOG' })
         newStock.save()
         return Promise.all([getData('GOOG')])
       }
-      console.log('stocks found, passing along')
       return Promise.all(stocks.map(stock => getData(stock.code)))
     })
     .then(data => {
       data.forEach(data => {
         const pruned = pruneData(data.dataset)
-        console.log('Passing along ' + pruned.name)
         socket.emit('addStock', pruned)
       })
     })
     .catch(err => {
-      console.error(err)
+      console.error(err.message)
       socket.emit('stockError', err)
     })
 }
@@ -132,7 +129,7 @@ function addStock (socket, code) {
       socket.emit('addStock', pruned)
     })
     .catch(err => {
-      console.error(err)
+      console.error(err.message)
       socket.emit('stockError', err)
     })
 }
@@ -146,7 +143,7 @@ function removeStock (socket, code) {
       socket.emit('removeStock', code)
     })
     .catch(err => {
-      console.error(err)
+      console.error(err.message)
       socket.emit('stockError', err)
     })
 }

@@ -12,12 +12,6 @@ import { HighstockChartService } from './core/highstock-chart.service'
 // https://github.com/gevgeny/angular2-highcharts/issues/176
 import { ChartModule } from 'angular2-highcharts';
 import { HighchartsStatic } from 'angular2-highcharts/dist/HighchartsService';
-
-import { ChartComponent } from './component/chart/chart.component';
-import { SearchComponent } from './component/search/search.component';
-import { StocksComponent } from './component/stocks/stocks.component';
-import { HomeComponent } from './component/home/home.component';
-import { LoadingComponent } from './core/loading.component';
 declare var require: any;
 export function highchartsFactory() {
   const hc = require('highcharts/highstock');
@@ -26,6 +20,14 @@ export function highchartsFactory() {
   return hc;
 }
 
+import { ChartComponent } from './component/chart/chart.component';
+import { SearchComponent } from './component/search/search.component';
+import { StocksComponent } from './component/stocks/stocks.component';
+import { HomeComponent } from './component/home/home.component';
+import { LoadingComponent } from './core/loading.component';
+import { FooterComponent } from './component/footer/footer.component';
+
+
 @NgModule({
   declarations: [
     AppComponent,
@@ -33,7 +35,8 @@ export function highchartsFactory() {
     SearchComponent,
     StocksComponent,
     HomeComponent,
-    LoadingComponent
+    LoadingComponent,
+    FooterComponent
   ],
   imports: [
     BrowserModule,

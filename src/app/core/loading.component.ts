@@ -7,10 +7,10 @@ import { Component } from '@angular/core'
       <img src="/assets/loading.svg">
   `,
   styles: [`
-  img {
-    margin: -20px auto;
-    width: 50px;
-  }
+    img {
+      margin: -20px auto;
+      width: 50px;
+    }
   `]
 })
 export class LoadingComponent { }

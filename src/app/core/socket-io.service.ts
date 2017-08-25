@@ -16,8 +16,8 @@ export class SocketIOService {
   loading: boolean
 
   constructor() {
-
-    this.socket = io('http://localhost:8080')
+    const host = window.location.hostname === 'localhost' ? 'http://localhost:8080' : null
+    this.socket = io(host)
 
     this.socket.on('error', error => {
       console.log(error)
@@ -33,6 +33,7 @@ export class SocketIOService {
     })
 
     this.socket.on('stockError', error => {
+      this.loading = false
       console.error(error)
       if (error.message.indexOf('You have submitted an incorrect Quandl code.') > -1) {
         alert('Invalid Code')
