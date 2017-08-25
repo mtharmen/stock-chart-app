@@ -38,9 +38,15 @@ export class StocksComponent implements OnDestroy {
       .addStock$
       .subscribe(
         stock => {
-          this.stocks.push(stock.name)
+          this.add(stock.name)
         }
       )
+  }
+
+  add(company) {
+    if (this.stocks.indexOf(company) === -1) {
+      this.stocks.push(company)
+    }
   }
 
   remove(company): void {

@@ -10,7 +10,7 @@ import { HighstockChartService } from '../../core/highstock-chart.service'
   template: `
     <form class="row justify-content-center">
       <div class="input-group col-8 mt-3">
-        <input class="form-control" name="search" type="text" [(ngModel)]="input.search" #search="ngModel" required/>
+        <input class="form-control" name="search" type="text" placeholder="Enter a stock code (eg. AAPL)" [(ngModel)]="input.search" #search="ngModel" required/>
         <span class="input-group-btn">
           <button class="btn btn-primary" type="submit" (click)="add()" [disabled]="!input.search">
             <span *ngIf="!io.loading">Search</span>

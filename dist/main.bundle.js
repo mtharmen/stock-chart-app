@@ -304,7 +304,7 @@ var SearchComponent = (function () {
 SearchComponent = __decorate([
     __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_0__angular_core__["Component"])({
         selector: 'app-search',
-        template: "\n    <form class=\"row justify-content-center\">\n      <div class=\"input-group col-8 mt-3\">\n        <input class=\"form-control\" name=\"search\" type=\"text\" [(ngModel)]=\"input.search\" #search=\"ngModel\" required/>\n        <span class=\"input-group-btn\">\n          <button class=\"btn btn-primary\" type=\"submit\" (click)=\"add()\" [disabled]=\"!input.search\">\n            <span *ngIf=\"!io.loading\">Search</span>\n            <app-loading *ngIf=\"io.loading\"></app-loading>\n          </button>\n        </span>\n      </div>\n    </form>\n  ",
+        template: "\n    <form class=\"row justify-content-center\">\n      <div class=\"input-group col-8 mt-3\">\n        <input class=\"form-control\" name=\"search\" type=\"text\" placeholder=\"Enter a stock code (eg. AAPL)\" [(ngModel)]=\"input.search\" #search=\"ngModel\" required/>\n        <span class=\"input-group-btn\">\n          <button class=\"btn btn-primary\" type=\"submit\" (click)=\"add()\" [disabled]=\"!input.search\">\n            <span *ngIf=\"!io.loading\">Search</span>\n            <app-loading *ngIf=\"io.loading\"></app-loading>\n          </button>\n        </span>\n      </div>\n    </form>\n  ",
         styles: []
     }),
     __metadata("design:paramtypes", [typeof (_a = typeof __WEBPACK_IMPORTED_MODULE_1__core_socket_io_service__["a" /* SocketIOService */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_1__core_socket_io_service__["a" /* SocketIOService */]) === "function" && _a || Object, typeof (_b = typeof __WEBPACK_IMPORTED_MODULE_2__core_highstock_chart_service__["a" /* HighstockChartService */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_2__core_highstock_chart_service__["a" /* HighstockChartService */]) === "function" && _b || Object])
@@ -341,9 +341,14 @@ var StocksComponent = (function () {
         this.addStockSub = this.io
             .addStock$
             .subscribe(function (stock) {
-            _this.stocks.push(stock.name);
+            _this.add(stock.name);
         });
     }
+    StocksComponent.prototype.add = function (company) {
+        if (this.stocks.indexOf(company) === -1) {
+            this.stocks.push(company);
+        }
+    };
     StocksComponent.prototype.remove = function (company) {
         if (this.stocks.length < 2) {
             alert('Must have at least one stock at all times');
@@ -460,10 +465,13 @@ var HighstockChartService = (function () {
         this.chart = chart;
     };
     HighstockChartService.prototype.addStock = function (data) {
-        this.chart.addSeries(data);
+        var i = this.chart.series.findIndex(function (stock) { return stock.name === data.name; });
+        if (i === -1) {
+            this.chart.addSeries(data);
+        }
     };
     HighstockChartService.prototype.removeStock = function (code) {
-        var i = this.chart.series.findIndex(function (data) { return data.name.indexOf("(" + code + ")") > -1; });
+        var i = this.chart.series.findIndex(function (stock) { return stock.name.indexOf("(" + code + ")") > -1; });
         this.chart.series[i].remove();
     };
     Object.defineProperty(HighstockChartService.prototype, "numberOfStocks", {
@@ -568,9 +576,15 @@ var SocketIOService = (function () {
         });
         this.socket.on('stockError', function (error) {
             _this.loading = false;
-            console.error(error);
-            if (error.message.indexOf('You have submitted an incorrect Quandl code.') > -1) {
-                alert('Invalid Code');
+            // console.error(error)
+            if (error.indexOf('You have submitted an incorrect Quandl code.') > -1) {
+                alert('Unrecognized Stock Code');
+            }
+            else if (error.indexOf('-') > -1) {
+                alert('Error retrieving data from Quandl');
+            }
+            else {
+                alert(error);
             }
         });
     }

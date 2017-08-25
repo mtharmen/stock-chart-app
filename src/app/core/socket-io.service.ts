@@ -34,9 +34,13 @@ export class SocketIOService {
 
     this.socket.on('stockError', error => {
       this.loading = false
-      console.error(error)
-      if (error.message.indexOf('You have submitted an incorrect Quandl code.') > -1) {
-        alert('Invalid Code')
+      // console.error(error)
+      if (error.indexOf('You have submitted an incorrect Quandl code.') > -1) {
+        alert('Unrecognized Stock Code')
+      } else if (error.indexOf('-') > -1) {
+        alert('Error retrieving data from Quandl')
+      } else {
+        alert(error)
       }
     })
   }

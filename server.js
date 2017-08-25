@@ -76,12 +76,12 @@ function initialize (socket) {
     .then(data => {
       data.forEach(data => {
         const pruned = pruneData(data.dataset)
-        socket.emit('addStock', pruned)
+        io.emit('addStock', pruned)
       })
     })
     .catch(err => {
       console.error(err.message)
-      socket.emit('stockError', err)
+      socket.emit('stockError', err.message)
     })
 }
 
@@ -111,14 +111,14 @@ function addStock (socket, code) {
   Stock.findOne({ code }).exec()
     .then(stock => {
       if (stock) {
-        throw new CustomError('Already added', 403)
+        throw new CustomError(code + 'Already added', 403)
       }
       return getData(code)
     })
     .then(data => {
       const newest = Date.parse(data.dataset.newest_available_date)
       if (newest < cutoff) {
-        throw new CustomError('No Data Found', 500)
+        throw new CustomError('No Data Found For ' + code, 500)
       }
       pruned = pruneData(data.dataset)
       const newStock = new Stock()
@@ -126,11 +126,11 @@ function addStock (socket, code) {
       return newStock.save()
     })
     .then(saved => {
-      socket.emit('addStock', pruned)
+      io.emit('addStock', pruned)
     })
     .catch(err => {
       console.error(err.message)
-      socket.emit('stockError', err)
+      socket.emit('stockError', err.message)
     })
 }
 
@@ -138,13 +138,13 @@ function removeStock (socket, code) {
   Stock.findOneAndRemove({ code }).exec()
     .then(stock => {
       if (!stock) {
-        throw new CustomError('Invalid Code', 403)
+        throw new CustomError(code + ' is Invalid', 403)
       }
-      socket.emit('removeStock', code)
+      io.emit('removeStock', code)
     })
     .catch(err => {
       console.error(err.message)
-      socket.emit('stockError', err)
+      socket.emit('stockError', err.message)
     })
 }
 

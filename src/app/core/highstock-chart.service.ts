@@ -34,11 +34,14 @@ export class HighstockChartService implements OnDestroy {
   }
 
   addStock(data): void {
-    this.chart.addSeries(data)
+    const i = this.chart.series.findIndex(stock => stock.name === data.name)
+    if (i === -1) {
+      this.chart.addSeries(data)
+    }
   }
 
   removeStock(code): void {
-    const i = this.chart.series.findIndex(data => data.name.indexOf(`(${code})`) > -1)
+    const i = this.chart.series.findIndex(stock => stock.name.indexOf(`(${code})`) > -1)
     this.chart.series[i].remove()
   }
 
