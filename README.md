@@ -1,5 +1,7 @@
 # Free Code Camp Challenge: [Build a Stock Chart App](https://www.freecodecamp.com/challenges/build-a-pinterest-clone)
 
+### Legacy branch using ReactJS front-end and older back-end
+
 ##User stories:
 1. I can view a graph displaying the recent trend lines for each added stock.
 2. I can add new stocks by their symbol name.
