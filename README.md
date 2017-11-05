@@ -2,8 +2,6 @@
 
 ### Check the legacy branch for the ReactJS front-end and older back-end 
 
-### Legacy branch using ReactJS front-end and older back-end
-
 ##User stories:
 1. I can view a graph displaying the recent trend lines for each added stock.
 2. I can add new stocks by their symbol name.
