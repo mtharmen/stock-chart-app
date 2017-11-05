@@ -16,7 +16,7 @@ const stockSchema = new mongoose.Schema({
 
 const Stock = mongoose.model('Stock', stockSchema)
 
-const MONGODB_URL = process.env.mongoDB_URL || 'mongodb://localhost:27017'
+const MONGODB_URL = process.env.MONGODB_URL || 'mongodb://localhost:27017'
 
 mongoose.Promise = global.Promise
 const dbName = 'mtharmen-stock-chart-app'
@@ -137,9 +137,9 @@ function addStock (socket, code) {
 function removeStock (socket, code) {
   Stock.findOneAndRemove({ code }).exec()
     .then(stock => {
-      if (!stock) {
-        throw new CustomError(code + ' is Invalid', 403)
-      }
+      // if (!stock) {
+      //   throw new CustomError(code + ' is Invalid', 403)
+      // }
       io.emit('removeStock', code)
     })
     .catch(err => {

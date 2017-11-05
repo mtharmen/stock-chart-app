@@ -16,7 +16,7 @@ export class SocketIOService {
   loading: boolean
 
   constructor() {
-    const host = window.location.hostname === 'localhost' ? 'http://localhost:8080' : null
+    const host = window.location.hostname !== 'localhost' ? window.location.origin : 'http://localhost:8080'
     this.socket = io(host)
 
     this.socket.on('error', error => {

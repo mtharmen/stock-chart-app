@@ -31,6 +31,7 @@ import { SocketIOService } from './../../core/socket-io.service'
 export class StocksComponent implements OnDestroy {
 
   addStockSub: Subscription
+  removeStockSub: Subscription
   stocks = []
 
   constructor(private io: SocketIOService) {
@@ -39,6 +40,14 @@ export class StocksComponent implements OnDestroy {
       .subscribe(
         stock => {
           this.add(stock.name)
+        }
+      )
+
+      this.removeStockSub = this.io
+      .removeStock$
+      .subscribe(
+        code => {
+          this.remove(`(${code})`)
         }
       )
   }
@@ -61,6 +70,7 @@ export class StocksComponent implements OnDestroy {
 
   ngOnDestroy() {
     this.addStockSub.unsubscribe()
+    this.removeStockSub.unsubscribe()
   }
 
 }
