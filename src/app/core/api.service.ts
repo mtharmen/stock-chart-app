@@ -6,7 +6,7 @@ import { Subscription } from 'rxjs/Subscription'
 import { Observable } from 'rxjs/Rx'
 import 'rxjs/add/operator/catch'
 
-const base_url = 'http://localhost:8080'
+const base_url = window.location.hostname !== 'localhost' ? window.location.origin : 'http://localhost:8080'
 
 @Injectable()
 export class ApiService {
