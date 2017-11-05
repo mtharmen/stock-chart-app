@@ -1,156 +1,186 @@
-const express = require('express')
-const app = express()
-const http = require('http')
-const server = http.createServer(app)
-const path = require('path')
-const request = require('request-promise-native')
-const mongoose = require('mongoose')
-require('dotenv').config()
+require('dotenv').config();
+var express  = require('express');
+var app      = express();
+var path     = require('path');
+var http     = require('http');
+var server   = http.createServer(app);
+var io       = require('socket.io')(server);
+var request  = require('request-promise-native');
+var mongoose = require('mongoose');
+//var schedule = require('node-schedule');
+var stocks   = require('./lib/stockCodes.js')(false);
 
-const cutoff = Date.parse('2016-01-01')
 
-// ************************************************************************************ MONGOOSE SETUP
-const stockSchema = new mongoose.Schema({
-  code: String
-})
+// Configs
+var ip   = process.env.IP   || '127.0.0.1';
+var port = process.env.PORT || 8080;
+mongoose.Promise = global.Promise;
 
-const Stock = mongoose.model('Stock', stockSchema)
+var stockSchema = new mongoose.Schema({ 
+	id        : Number,
+  	code      : String,
+  	company   : String,
+  	stockData : [[String, Number]]  
+});
 
-const MONGODB_URL = process.env.mongoDB_URL || 'mongodb://localhost:27017'
+var Stock = mongoose.model('Stock', stockSchema);
 
-mongoose.Promise = global.Promise
-const dbName = 'stockDB'
-mongoose.connect(MONGODB_URL + `/${dbName}`, { useMongoClient: true })
-const db = mongoose.connection
-db.on('error', err => { console.error(err) })
-db.once('open', () => {
-  console.log('Connected to ' + dbName)
-})
+var mongodbUrl = process.env.MONGODB_URL || 'mongodb://' + ip;
+	
+mongoose.connect(mongodbUrl + '/mtharmen-stock-chart-app');
+var db = mongoose.connection;
+db.on('error', console.error.bind(console, 'connection error:'));
+db.once('open', function() {
+ 	console.log('Connected to mtharmen-stock-chart-app');
+});
 
-// Close MongoDB connection
-process.on('SIGINT', () => {
-  db.close(() => {
-    console.log(`Closing connection to ${dbName}`)
-    process.exit(0)
-  })
-})
+var convertDate = function(date) {
+	date = parseInt(date);
+	var d = new Date(date);
+	var day = d.getUTCDate() < 10 ? '0' + day : day;
+	var month = d.getUTCMonth()+1 < 10 ? '0' + month : month;
 
-if (process.env.NODE_ENV !== 'dev') {
-  app.use('/', express.static(path.join(__dirname, './dist')))
-}
+	var endDate = d.getUTCFullYear() + '-' + month + '-' + day; // Formatted
 
-if (process.env.NODE_ENV !== 'dev') {
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '/dist/index.html'))
-  })
-}
+	return endDate;
+};
 
-server.listen(8080, () => console.log('Listening on ' + 8080))
+// Expess Set Up
+app.use(express.static(path.join(__dirname, 'dist')));
 
-// ************************************************************ SOCKET IO
-const io = require('socket.io')(server)
-io.sockets.on('connection', socket => {
-  console.log('client connected')
+app.get('/', (req, res) => {
+	res.sendFile(path.join(__dirname, '/views/index.html'));
+});
 
-  initialize(socket)
+server.listen(port, () => {
+	console.log('Listening on port', port);
+});
 
-  socket.on('clientAddStock', code => {
-    addStock(socket, code)
-  })
+// SOCKET.IO STUFF
+io.on('connection', socket => {
+  
+	console.log(timestamp() + 'connected');
+	//console.log(socket.request.headers)
 
-  socket.on('clientRemoveStock', code => {
-    removeStock(socket, code)
-  })
-})
+	// Intializing new connection
+	initialize(socket);
 
-function initialize (socket) {
-  Stock.find({}).exec()
-    .then(stocks => {
-      if (!stocks.length) {
-        const newStock = new Stock({ code: 'GOOG' })
-        newStock.save()
-        return Promise.all([getData('GOOG')])
-      }
-      return Promise.all(stocks.map(stock => getData(stock.code)))
-    })
-    .then(data => {
-      data.forEach(data => {
-        const pruned = pruneData(data.dataset)
-        io.emit('addStock', pruned)
-      })
-    })
-    .catch(err => {
-      console.error(err.message)
-      socket.emit('stockError', err.message)
-    })
-}
+	socket.on('clientAddStock', data => {
+		addStock(data, socket);
+	});
 
-function pruneData (data) {
-  return {
-    name: data.name.split(' Prices,')[0],
-    data: data.data.map(point => { return [ Date.parse(point[0]), point[1] ] }).reverse()
-  }
-}
+	socket.on('clientRemoveStock', data => {
+		removeStock(data, socket);
+	});
 
-function getData (code) {
-  const options = {
-    url: 'https://www.quandl.com/api/v3/datasets/WIKI/' + code + '.json',
-    method: 'GET',
-    qs: {
-      column_index: '4',
-      api_key: process.env.QUANDL_API_KEY,
-      start_date: '2016-01-01'
-    },
-    json: true
-  }
-  return request(options)
-}
+	socket.on('disconnect', () => {
+		console.log(timestamp() + 'disconnected');
+	});
+});
 
-function addStock (socket, code) {
-  let pruned = {}
-  Stock.findOne({ code }).exec()
-    .then(stock => {
-      if (stock) {
-        throw new CustomError(code + 'Already added', 403)
-      }
-      return getData(code)
-    })
-    .then(data => {
-      const newest = Date.parse(data.dataset.newest_available_date)
-      if (newest < cutoff) {
-        throw new CustomError('No Data Found For ' + code, 500)
-      }
-      pruned = pruneData(data.dataset)
-      const newStock = new Stock()
-      newStock.code = code
-      return newStock.save()
-    })
-    .then(saved => {
-      io.emit('addStock', pruned)
-    })
-    .catch(err => {
-      console.error(err.message)
-      socket.emit('stockError', err.message)
-    })
-}
+var timestamp = function() {
+	return new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '') + ' | ';
+};
 
-function removeStock (socket, code) {
-  Stock.findOneAndRemove({ code }).exec()
-    .then(stock => {
-      if (!stock) {
-        throw new CustomError(code + ' is Invalid', 403)
-      }
-      io.emit('removeStock', code)
-    })
-    .catch(err => {
-      console.error(err.message)
-      socket.emit('stockError', err.message)
-    })
-}
+var getData = function(code) {
+	var options = {
+	    url: 'https://www.quandl.com/api/v3/datasets/WIKI/' + code + '.json',
+	    method: 'GET',
+	    qs: {
+	        column_index : '4',
+	        api_key      : process.env.QUANDL_API_KEY,
+	        start_date   : '2014-01-01'
+	    },
+	    json: true
+	};
+	return request(options);
+};
 
-function CustomError (message, code, name = this.constructor.name) {
-  Error.captureStackTrace(this, this.constructor)
-  this.name = name
-  this.message = message
-  this.statusCode = code
+var getDefault = function() {
+	getData('GOOG')
+		.then(res => {
+			var data = res.dataset.data.map(point => { return [ Date.parse(point[0]), point[1] ]; });
+			return data;
+		});
+};
+
+var initialize = function(socket) {
+	Stock.find({}, 'code company -_id').exec().then(docs => {
+		var promises = docs.map(doc => {
+			return getData(doc.code);
+		});
+		Promise.all(promises)
+			.then(data => {
+				var stocks = [];
+				var stockData = [];
+				if (data.length) {
+					data.forEach(res => {
+						var id = Math.floor(Math.random()*10000); // TODO: Make this client side
+						// Converting from YYYY-MM-DD to Unix Time
+						var data = res.dataset.data.map(point => { return [ Date.parse(point[0]), point[1] ]; }).reverse();
+						// Separating code+company from data since only the chart needs the data
+						stocks.push({ id: id,  code: res.dataset.dataset_code, company: res.dataset.name.split(' (')[0] });
+						stockData.push(data);
+					});
+					console.log(timestamp() + 'Initializing');
+					socket.emit('initialize', { stocks: stocks, stockData: stockData });
+				} else {
+					getData('GOOG')
+						.then(res => {
+							var data = res.dataset.data.map(point => { return [ Date.parse(point[0]), point[1] ]; }).reverse();
+							stockData.push(data);
+							stocks.push({ id: Math.floor(Math.random()*10000), code: 'GOOG', company: 'Alphabet Inc.'});
+							console.log(timestamp() + 'Initializing');
+							socket.emit('initialize', { stocks: stocks, stockData: stockData });
+						})
+						.catch(res => {
+							var message = 'Error getting data from Quandl API';
+							console.error(timestamp() + message);
+							socket.emit('cantInitialize', { msg: message });	
+						});
+				}			
+			})
+			.catch(res => {
+				var message = 'Error getting data from Quandl API';
+				console.error(timestamp() + message);
+				socket.emit('cantInitialize', { msg: message });
+			});
+	})
+	.catch(err => {
+		console.error(timestamp() + err);
+		socket.emit('cantInitialize', { msg: err });
+	});
+};
+
+var addStock = function(stock, socket) {
+	getData(stock.code)
+		.then(res => {
+			var newStock = new Stock(stock);
+			newStock.save()
+				.then(doc => {
+					var data = res.dataset.data.map(function(point) { return [ Date.parse(point[0]), point[1] ]; }).reverse();
+					console.log(timestamp() + 'Added ' + stock.code );
+					io.emit('addStock', { id: Math.floor(Math.random()*10000), code: stock.code, company: stock.company, stockData: data });
+				})
+				.catch(err => {
+					console.error(timestamp() + err);
+					socket.emit('errorMsg', { msg: err });
+				});
+		})
+		.catch(res => {
+			console.error(timestamp() + 'Error getting data from Quandl API');
+			socket.emit('errorMsg', { msg: err });
+		});
+};
+
+var removeStock = function(stock, socket) {
+	Stock.remove({ code: stock.code })
+		.then(() => {
+			console.log(timestamp() + 'Removed ' + stock.code);
+			io.emit('removeStock', { code: stock.code });
+		})
+		.catch(err => {
+			console.error(timestamp() + err);
+			socket.emit('errorMsg', { msg: err });
+		});
 };
