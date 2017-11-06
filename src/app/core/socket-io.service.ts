@@ -10,7 +10,7 @@ export class SocketIOService {
 
   private socket: any
   // TODO make model for stocks
-  test$ = new Subject<string>()
+  throttled$ = new Subject<string>()
   addStock$ = new Subject<any>()
   removeStock$ = new Subject<string>()
   loading: boolean
@@ -20,10 +20,11 @@ export class SocketIOService {
     this.socket = io(host)
 
     this.socket.on('error', error => {
-      console.log(error)
+      console.error(error)
     })
 
     this.socket.on('addStock', data => {
+      this.throttled$.next('')
       this.loading = false
       this.addStock$.next(data)
     })
@@ -39,6 +40,9 @@ export class SocketIOService {
         alert('Unrecognized Stock Code')
       } else if (error.indexOf('-') > -1) {
         alert('Error retrieving data from Quandl')
+      } else if (error.indexOf('Quandl API throttled') > -1) {
+        alert(error)
+        this.throttled$.next(error)
       } else {
         alert(error)
       }

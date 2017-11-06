@@ -48,9 +48,10 @@ const PORT = process.env.PORT || 8080
 server.listen(PORT, () => console.log('Listening on ' + PORT))
 
 // ************************************************************ SOCKET IO
+let rateLimit = 1
 const io = require('socket.io')(server)
 io.sockets.on('connection', socket => {
-  console.log('client connected')
+  // console.log('client connected')
 
   initialize(socket)
 
@@ -63,7 +64,51 @@ io.sockets.on('connection', socket => {
   })
 })
 
+function throttleCheck (setRateLimit = 0) {
+  rateLimit = setRateLimit || rateLimit
+  const buffer = rateLimit + 1000 * 60 * 30 // 30 minutes
+  if (buffer > Date.now()) {
+    const cooldown = buffer - Date.now()
+    const reset = new Date(cooldown)
+    const message = 'Quandl API throttled, wait ' + reset.getUTCMinutes() + ' minutes before trying to add stocks'
+    console.error(Date() + ': Quandle API rate limited exceeded, waiting ' + reset.getUTCMinutes() + ' minutes before allowing requests again')
+    return new CustomError(message, 403)
+  } else {
+    rateLimit = 1
+  }
+}
+
+function getData (code) {
+  const error = throttleCheck()
+  if (error) {
+    return Promise.reject(error)
+  }
+  const options = {
+    url: 'https://www.quandl.com/api/v3/datasets/WIKI/' + code + '.json',
+    method: 'GET',
+    qs: {
+      column_index: '4',
+      api_key: process.env.QUANDL_API_KEY,
+      start_date: '2016-01-01'
+    },
+    json: true
+  }
+  return request(options)
+}
+
+function pruneData (data) {
+  return {
+    name: data.name.split(' Prices,')[0],
+    data: data.data.map(point => { return [ Date.parse(point[0]), point[1] ] }).reverse()
+  }
+}
+
 function initialize (socket) {
+  const error = throttleCheck()
+  if (error) {
+    socket.emit('stockError', error.message)
+    return
+  }
   Stock.find({}).exec()
     .then(stocks => {
       if (!stocks.length) {
@@ -81,39 +126,34 @@ function initialize (socket) {
     })
     .catch(err => {
       console.error(err.message)
+      if (err.message.indexOf('You have exceeded the API speed limit') > -1) {
+        rateLimit = Date.now()
+        err = throttleCheck(Date.now()) || err
+      }
       socket.emit('stockError', err.message)
     })
 }
 
-function pruneData (data) {
-  return {
-    name: data.name.split(' Prices,')[0],
-    data: data.data.map(point => { return [ Date.parse(point[0]), point[1] ] }).reverse()
-  }
-}
-
-function getData (code) {
-  const options = {
-    url: 'https://www.quandl.com/api/v3/datasets/WIKI/' + code + '.json',
-    method: 'GET',
-    qs: {
-      column_index: '4',
-      api_key: process.env.QUANDL_API_KEY,
-      start_date: '2016-01-01'
-    },
-    json: true
-  }
-  return request(options)
-}
-
 function addStock (socket, code) {
   let pruned = {}
-  Stock.findOne({ code }).exec()
-    .then(stock => {
-      if (stock) {
-        throw new CustomError(code + 'Already added', 403)
+  const error = throttleCheck()
+  if (error) {
+    socket.emit('stockError', error.message)
+    return
+  }
+  Stock.find({}).exec()
+    .then(stocks => {
+      if (stocks.length < 9) {
+        const exist = stocks.some(stock => stock.code === code)
+        console.log('code: ' + code + ' | ' + exist)
+        if (exist) {
+          throw new CustomError(code + 'Already added', 403)
+        }
+        return getData(code)
+      } else {
+        // NOTE: maybe handle this client side only?
+        throw new CustomError('Max of 10 Stocks at a time', 403)
       }
-      return getData(code)
     })
     .then(data => {
       const newest = Date.parse(data.dataset.newest_available_date)
@@ -130,17 +170,22 @@ function addStock (socket, code) {
     })
     .catch(err => {
       console.error(err.message)
+      if (err.message.indexOf('You have exceeded the API speed limit') > -1) {
+        err = throttleCheck(Date.now()) || err
+      }
       socket.emit('stockError', err.message)
     })
 }
 
 function removeStock (socket, code) {
-  Stock.findOneAndRemove({ code }).exec()
-    .then(stock => {
-      // if (!stock) {
-      //   throw new CustomError(code + ' is Invalid', 403)
-      // }
-      io.emit('removeStock', code)
+  Stock.find({}).exec()
+    .then(stocks => {
+      if (stocks.length > 1) {
+        io.emit('removeStock', code)
+      } else {
+        // NOTE: maybe let this be handled client side only?
+        throw new CustomError('Must have at least one stock at all times', 403)
+      }
     })
     .catch(err => {
       console.error(err.message)

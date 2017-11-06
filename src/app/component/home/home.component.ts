@@ -9,7 +9,8 @@ import { HighstockChartService } from './../../core/highstock-chart.service'
   selector: 'app-home',
   template: `
     <h1 class="text-center">Stock Chart App</h1>
-    <h1 class="text-center" *ngIf="!this.cs.numberOfStocks">Loading...<app-loading></app-loading></h1>
+    <h1 class="text-center" *ngIf="!this.cs.numberOfStocks && !throttled">Loading...<app-loading></app-loading></h1>
+    <div class="alert alert-danger text-center" *ngIf="throttled"><strong>{{throttled}}</strong></div>
     <div [ngClass]="{'loading': !this.cs.numberOfStocks}">
       <app-chart [options]="options"></app-chart>
       <app-search></app-search>
@@ -27,6 +28,8 @@ export class HomeComponent {
 
   options: object
   chart: any
+  throttled: string
+  throttledSub: Subscription
 
   constructor(
     private io: SocketIOService,
@@ -39,5 +42,12 @@ export class HomeComponent {
       },
       series: []
     }
+    this.throttledSub = this.io
+    .throttled$
+    .subscribe(
+      error => {
+        this.throttled = error
+      }
+    )
   }
 }

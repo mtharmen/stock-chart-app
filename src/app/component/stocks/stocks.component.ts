@@ -11,7 +11,7 @@ import { SocketIOService } from './../../core/socket-io.service'
       <ng-container *ngFor="let stock of stocks">
         <div class="card col-6 col-lg-3">
           <div class="card-body">
-            <span id="remove" class="float-right" (click)="remove(stock)">&times;</span>
+            <span id="remove" class="float-right" (click)="handleClick(stock)">&times;</span>
             <p>{{stock}}</p>
           </div>
         </div>
@@ -58,14 +58,19 @@ export class StocksComponent implements OnDestroy {
     }
   }
 
-  remove(company): void {
+  handleClick(company): void {
     if (this.stocks.length < 2) {
       alert('Must have at least one stock at all times')
     } else {
-      const code = company.split('(')[1].replace(')', '').trim()
-      this.stocks = this.stocks.filter(stock => stock.indexOf(code) === -1)
+      const code = this.remove(company)
       this.io.removeStock(code)
     }
+  }
+
+  remove(company): string {
+    const code = company.split('(')[1].replace(')', '').trim()
+    this.stocks = this.stocks.filter(stock => stock.indexOf(code) === -1)
+    return code
   }
 
   ngOnDestroy() {
