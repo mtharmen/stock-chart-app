@@ -44,8 +44,8 @@ if (process.env.NODE_ENV !== 'dev') {
     res.sendFile(path.join(__dirname, '/dist/index.html'))
   })
 }
-
-server.listen(8080, () => console.log('Listening on ' + 8080))
+const PORT = process.env.PORT || 8080
+server.listen(PORT, () => console.log('Listening on ' + PORT))
 
 // ************************************************************ SOCKET IO
 const io = require('socket.io')(server)
